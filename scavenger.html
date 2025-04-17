@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESewa Scavenger Hunt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .stage {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .active {
+            display: block;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+            margin-top: 0;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+            margin-right: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        input, select {
+            padding: 10px;
+            width: 250px;
+            margin-right: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .emoji-container {
+            font-size: 28px;
+            margin: 25px 0;
+            line-height: 1.8;
+            text-align: center;
+            min-height: 60px;
+            letter-spacing: 3px;
+        }
+        .hint {
+            color: #7f8c8d;
+            font-style: italic;
+            margin: 15px 0;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .congrats {
+            color: #27ae60;
+            font-weight: bold;
+            margin: 15px 0;
+            font-size: 18px;
+        }
+        .error {
+            color: #e74c3c;
+            margin: 10px 0;
+        }
+        .team-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .attempts {
+            color: #e67e22;
+            font-weight: bold;
+        }
+        .answer-container {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        #all-hints {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        #all-hints p {
+            margin: 10px 0;
+            padding-left: 15px;
+            border-left: 3px solid #3498db;
+        }
+        #completion {
+            text-align: center;
+        }
+        #completion strong {
+            color: #3498db;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ESewa Scavenger Hunt</h1>
+    
+    <div id="stage1" class="stage active">
+        <h2>Stage 1: Word Rearrangement</h2>
+        <p>Rearrange the letters in the word: <strong id="scramble-word"></strong></p>
+        <div class="answer-container">
+            <input type="text" id="stage1-answer" placeholder="Your answer">
+            <button onclick="checkStage1()">Submit</button>
+        </div>
+        <div class="button-container">
+            <button id="next1" onclick="nextStage(2)" disabled>Next Challenge →</button>
+        </div>
+        <p id="stage1-feedback"></p>
+        <p id="hint1" class="hint">I speak without a voice yet answer when called</p>
+    </div>
+    
+    <div id="stage2" class="stage">
+        <h2>Stage 2: Algebra Puzzle</h2>
+        <p>Solve for x and y:</p>
+        <p id="algebra-question" style="font-family: monospace; font-size: 18px;"></p>
+        <div class="answer-container">
+            <input type="text" id="x-value" placeholder="x value">
+            <input type="text" id="y-value" placeholder="y value">
+            <button onclick="checkStage2()">Submit</button>
+        </div>
+        <div class="button-container">
+            <button id="next2" onclick="nextStage(3)" disabled>Next Challenge →</button>
+        </div>
+        <p id="stage2-feedback"></p>
+        <p id="hint2" class="hint">I live in your pocket though I'm not alive at all</p>
+    </div>
+    
+    <div id="stage3" class="stage">
+        <h2>Stage 3: Complex Payment Scenarios</h2>
+        <p>Decode what payment scenario these emojis represent:</p>
+        <div class="emoji-container" id="emoji-scenario"></div>
+        <div class="answer-container">
+            <select id="stage3-answer">
+                <option value="">Select a scenario</option>
+                <option value="payment pending">Payment Pending</option>
+                <option value="payment deducted but service not received">Payment Deducted but Service Not Received</option>
+                <option value="fraud case">Fraud Case</option>
+                <option value="double payment for same service">Double Payment for Same Service</option>
+                <option value="failed transaction">Failed Transaction</option>
+                <option value="refund request">Refund Request</option>
+                <option value="account verification needed">Account Verification Needed</option>
+                <option value="payment limit exceeded">Payment Limit Exceeded</option>
+                <option value="recurring payment setup">Recurring Payment Setup</option>
+                <option value="international transaction fee">International Transaction Fee</option>
+            </select>
+            <button onclick="checkStage3()">Submit</button>
+        </div>
+        <div class="button-container">
+            <button id="next3" onclick="nextStage(4)" disabled>Next Challenge →</button>
+        </div>
+        <p id="stage3-feedback"></p>
+        <p id="attempt-counter" class="attempts">Attempts left: 3</p>
+        <p id="hint3" class="hint">No hands to assist but I'll pay what you owe</p>
+    </div>
+    
+    <div id="stage4" class="stage">
+        <h2>Stage 4: Team Challenge</h2>
+        <div class="team-info">
+            <p>Your team letter is: <strong id="team-letter"></strong></p>
+            <p>Your word is: <strong id="team-word"></strong></p>
+        </div>
+        <p>Find another team with the same letter and guess their word:</p>
+        <div class="answer-container">
+            <input type="text" id="opponent-word" placeholder="Opponent's word">
+            <button onclick="checkStage4()">Submit</button>
+        </div>
+        <div class="button-container">
+            <button id="next4" onclick="nextStage(5)" disabled>Next Challenge →</button>
+        </div>
+        <p id="stage4-feedback"></p>
+        <p id="hint4" class="hint">Need help with transactions? Just tell me I'll know</p>
+    </div>
+    
+    <div id="stage5" class="stage">
+        <h2>Stage 5: Nepali Riddle</h2>
+        <p style="font-size: 18px; line-height: 1.6;">"Rup sano vayea pani takat cha thulo gyani haru vanne garchan paitala ko dhulo. k ho?"</p>
+        <div class="answer-container">
+            <input type="text" id="stage5-answer" placeholder="Your answer">
+            <button onclick="checkStage5()">Submit</button>
+        </div>
+        <div class="button-container">
+            <button id="next5" onclick="nextStage(6)" disabled>Final Challenge →</button>
+        </div>
+        <p id="stage5-feedback"></p>
+        <p id="hint5" class="hint">A ghost yet useful each day who works without resting yet never needs pay.</p>
+    </div>
+    
+    <div id="final-stage" class="stage">
+        <h2>Final Challenge</h2>
+        <p>Combine all the hints you've received to answer:</p>
+        <div id="all-hints"></div>
+        <div class="answer-container">
+            <input type="text" id="final-answer" placeholder="Your answer">
+            <button onclick="checkFinalStage()">Submit</button>
+        </div>
+        <div class="button-container">
+            <button id="next-final" onclick="nextStage(7)" disabled>See Results</button>
+        </div>
+        <p id="final-feedback"></p>
+    </div>
+    
+    <div id="completion" class="stage">
+        <h2 style="color: #27ae60;">Congratulations! 🎉</h2>
+        <p>You've successfully completed the ESewa Scavenger Hunt!</p>
+        <p>The final answer is: <strong>EVA (ESewa Virtual Assistant)</strong></p>
+        <p style="margin-top: 30px;">You've unlocked all the secrets of ESewa's virtual helper!</p>
+    </div>
+
+    <script>
+        // Game state
+        const state = {
+            currentStage: 1,
+            scrambleWord: "",
+            algebraQuestions: [
+                { question: "2x + 3y = 12\nx - y = 1", x: 3, y: 2 },
+                { question: "x + y = 10\n2x - y = 8", x: 6, y: 4 },
+                { question: "3x + 2y = 16\nx - y = 2", x: 4, y: 2 },
+                { question: "5x - 2y = 11\nx + y = 4", x: 3, y: 1 },
+                { question: "4x + 3y = 25\n2x - y = 5", x: 4, y: 3 },
+                { question: "x + 2y = 7\n3x - y = 11", x: 5, y: 1 }
+            ],
+            currentAlgebra: null,
+            emojiScenarios: [
+                {
+                    emojis: "💳⏳❓📱🔄🔍⏱️📊🚫✅",
+                    answer: "payment pending"
+                },
+                {
+                    emojis: "💸➡️👤❌📉😤📞🛑🔙📝",
+                    answer: "payment deducted but service not received"
+                },
+                {
+                    emojis: "👤💸🚫✅🕵️‍♂️🔒🚨📲💳🔍",
+                    answer: "fraud case"
+                },
+                {
+                    emojis: "💸💸➡️🛒1️⃣🤔📊🔄📞🔙",
+                    answer: "double payment for same service"
+                },
+                {
+                    emojis: "💳❌📉😫🔄🔙⏳📲📞🛑",
+                    answer: "failed transaction"
+                },
+                {
+                    emojis: "💸↩️📝📅⏳🔄📲📊✅📩",
+                    answer: "refund request"
+                },
+                {
+                    emojis: "👤📝📸🆔📅⏳🔒✅📲💳",
+                    answer: "account verification needed"
+                },
+                {
+                    emojis: "💸⬆️📊🚫📅📞🔄🔓📲💰",
+                    answer: "payment limit exceeded"
+                },
+                {
+                    emojis: "🔄💸📅⏰📲✅📊🔔💳📝",
+                    answer: "recurring payment setup"
+                },
+                {
+                    emojis: "🌍💱💸➕💰📊🏦📲💳🔍",
+                    answer: "international transaction fee"
+                }
+            ],
+            currentEmojiScenario: null,
+            attemptsLeft: 3,
+            teamLetters: ["A", "B", "C"],
+            teamWords: {
+                "A": ["LOGIN", "TRANSFER"],
+                "B": ["VERIFIED", "ACCOUNT"],
+                "C": ["ONLINE", "LINK"]
+            },
+            currentTeam: null,
+            currentTeamWord: null,
+            hints: [
+                "I speak without a voice yet answer when called",
+                "I live in your pocket though I'm not alive at all",
+                "No hands to assist but I'll pay what you owe",
+                "Need help with transactions? Just tell me I'll know",
+                "A ghost yet useful each day who works without resting yet never needs pay"
+            ],
+            usedWords: []
+        };
+
+        // Initialize the game
+        function initGame() {
+            setupStage1();
+        }
+
+        // Navigation function
+        function nextStage(stageNumber) {
+            document.querySelector('.stage.active').classList.remove("active");
+            document.getElementById(`stage${stageNumber}`).classList.add("active");
+            state.currentStage = stageNumber;
+            
+            if (stageNumber === 2) setupStage2();
+            else if (stageNumber === 3) setupStage3();
+            else if (stageNumber === 4) setupStage4();
+            else if (stageNumber === 5) setupStage5();
+            else if (stageNumber === 6) setupFinalStage();
+            else if (stageNumber === 7) showCompletion();
+        }
+
+        function showCompletion() {
+            document.getElementById("final-stage").classList.remove("active");
+            document.getElementById("completion").classList.add("active");
+        }
+
+        // Stage 1 functions
+        function setupStage1() {
+            const words = ["ALERT", "REGISTER"];
+            state.scrambleWord = words[Math.floor(Math.random() * words.length)];
+            
+            let scrambled = shuffleWord(state.scrambleWord);
+            if (state.scrambleWord === "ALERT") {
+                scrambled = scrambled.split('').join(' ') + " !";
+            }
+            
+            document.getElementById("scramble-word").textContent = scrambled;
+            resetStageElements(1);
+        }
+
+        function shuffleWord(word) {
+            return word.split('').sort(() => Math.random() - 0.5).join('');
+        }
+
+        function checkStage1() {
+            const userAnswer = document.getElementById("stage1-answer").value.trim().toUpperCase();
+            let correctAnswer = state.scrambleWord + (state.scrambleWord === "ALERT" ? "!" : "");
+            
+            if (userAnswer === correctAnswer) {
+                showCorrectFeedback(1);
+            } else {
+                document.getElementById("stage1-feedback").textContent = "Incorrect, try again!";
+                document.getElementById("stage1-feedback").className = "error";
+            }
+        }
+
+        // Stage 2 functions
+        function setupStage2() {
+            state.currentAlgebra = state.algebraQuestions[Math.floor(Math.random() * state.algebraQuestions.length)];
+            document.getElementById("algebra-question").textContent = state.currentAlgebra.question;
+            resetStageElements(2);
+        }
+
+        function checkStage2() {
+            const xValue = parseFloat(document.getElementById("x-value").value);
+            const yValue = parseFloat(document.getElementById("y-value").value);
+            
+            if (isNaN(xValue) || isNaN(yValue)) {
+                showError(2, "Please enter valid numbers");
+                return;
+            }
+            
+            if (Math.abs(xValue - state.currentAlgebra.x) < 0.01 && 
+                Math.abs(yValue - state.currentAlgebra.y) < 0.01) {
+                showCorrectFeedback(2);
+            } else {
+                showError(2, "Incorrect, try again!");
+            }
+        }
+
+        // Stage 3 functions
+        function setupStage3() {
+            state.attemptsLeft = 3;
+            document.getElementById("attempt-counter").textContent = "Attempts left: " + state.attemptsLeft;
+            
+            let newScenario;
+            do {
+                newScenario = state.emojiScenarios[Math.floor(Math.random() * state.emojiScenarios.length)];
+            } while (state.currentEmojiScenario && state.currentEmojiScenario.emojis === newScenario.emojis && state.emojiScenarios.length > 1);
+            
+            state.currentEmojiScenario = newScenario;
+            document.getElementById("emoji-scenario").textContent = state.currentEmojiScenario.emojis;
+            resetStageElements(3);
+        }
+
+        function checkStage3() {
+            const userAnswer = document.getElementById("stage3-answer").value.trim().toLowerCase();
+            
+            if (userAnswer === state.currentEmojiScenario.answer) {
+                showCorrectFeedback(3);
+            } else {
+                state.attemptsLeft--;
+                document.getElementById("attempt-counter").textContent = "Attempts left: " + state.attemptsLeft;
+                
+                if (state.attemptsLeft <= 0) {
+                    showError(3, "Out of attempts! Starting over...");
+                    setTimeout(resetToStage1, 2000);
+                } else {
+                    showError(3, "Incorrect, try again!");
+                }
+            }
+        }
+
+        function resetToStage1() {
+            document.getElementById("stage3").classList.remove("active");
+            state.scrambleWord = "REGISTER";
+            setupStage1();
+            document.getElementById("stage1").classList.add("active");
+            state.currentStage = 1;
+        }
+
+        // Stage 4 functions
+        function setupStage4() {
+            state.currentTeam = state.teamLetters[Math.floor(Math.random() * state.teamLetters.length)];
+            const words = state.teamWords[state.currentTeam];
+            
+            // Ensure we don't repeat words
+            let availableWords = words.filter(word => !state.usedWords.includes(word));
+            if (availableWords.length === 0) {
+                availableWords = words;
+                state.usedWords = [];
+            }
+            
+            state.currentTeamWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+            state.usedWords.push(state.currentTeamWord);
+            
+            document.getElementById("team-letter").textContent = state.currentTeam;
+            document.getElementById("team-word").textContent = state.currentTeamWord;
+            resetStageElements(4);
+        }
+
+        function checkStage4() {
+            const userAnswer = document.getElementById("opponent-word").value.trim().toUpperCase();
+            const otherWord = state.teamWords[state.currentTeam].find(word => word !== state.currentTeamWord);
+            
+            if (userAnswer === otherWord) {
+                showCorrectFeedback(4);
+            } else {
+                showError(4, "Incorrect, try again!");
+            }
+        }
+
+        // Stage 5 functions
+        function setupStage5() {
+            resetStageElements(5);
+        }
+
+        function checkStage5() {
+            const userAnswer = document.getElementById("stage5-answer").value.trim().toLowerCase();
+            
+            if (userAnswer === "paisa" || userAnswer === "money") {
+                showCorrectFeedback(5);
+            } else {
+                showError(5, "Incorrect, try again!");
+            }
+        }
+
+        // Final stage functions
+        function setupFinalStage() {
+            const hintsContainer = document.getElementById("all-hints");
+            hintsContainer.innerHTML = "";
+            
+            state.hints.forEach(hint => {
+                const p = document.createElement("p");
+                p.textContent = hint;
+                hintsContainer.appendChild(p);
+            });
+            
+            resetStageElements("final");
+        }
+
+        function checkFinalStage() {
+            const userAnswer = document.getElementById("final-answer").value.trim().toUpperCase();
+            
+            if (userAnswer === "EVA" || userAnswer === "ESEWA VIRTUAL ASSISTANT") {
+                showCorrectFeedback("final");
+            } else {
+                showError("final", "Incorrect, try again!");
+            }
+        }
+
+        // Helper functions
+        function resetStageElements(stageNum) {
+            const stagePrefix = stageNum === "final" ? "final" : `stage${stageNum}`;
+            
+            if (stageNum !== "final") {
+                document.getElementById(`${stagePrefix}-feedback`).textContent = "";
+                document.getElementById(`${stagePrefix}-feedback`).className = "";
+                document.getElementById(`hint${stageNum}`).style.display = "none";
+                document.getElementById(`next${stageNum}`).disabled = true;
+            }
+            
+            if (document.getElementById(`${stagePrefix}-answer`)) {
+                document.getElementById(`${stagePrefix}-answer`).value = "";
+            }
+        }
+
+        function showCorrectFeedback(stageNum) {
+            const stagePrefix = stageNum === "final" ? "final" : `stage${stageNum}`;
+            
+            document.getElementById(`${stagePrefix}-feedback`).innerHTML = '<span class="congrats">Correct!</span>';
+            
+            if (stageNum !== "final") {
+                document.getElementById(`hint${stageNum}`).style.display = "block";
+                document.getElementById(`next${stageNum}`).disabled = false;
+            } else {
+                document.getElementById("next-final").disabled = false;
+            }
+        }
+
+        function showError(stageNum, message) {
+            const stagePrefix = stageNum === "final" ? "final" : `stage${stageNum}`;
+            document.getElementById(`${stagePrefix}-feedback`).textContent = message;
+            document.getElementById(`${stagePrefix}-feedback`).className = "error";
+        }
+
+        // Initialize the game
+        window.onload = initGame;
+    </script>
+</body>
+</html>
